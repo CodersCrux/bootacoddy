@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "ports.h": "c",
+        "descriptors.h": "c",
+        "*.tcc": "c",
+        "unordered_map": "c",
+        "numeric": "c",
+        "ostream": "c",
+        "filesystem": "cpp",
+        "fstream": "cpp",
+        "iosfwd": "cpp",
+        "sstream": "cpp"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
+}
