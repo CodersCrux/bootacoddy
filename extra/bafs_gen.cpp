@@ -28,9 +28,9 @@ struct BAFSHeader
     BAFSFileHeader files[16];
 } __attribute__((packed));
 
-std::string dir = "ramdisk";
+std::string dir = "../ramdisk";
 
-std::string output = "ramdisk.bafs";
+std::string output = "../ramdisk.bafs";
 
 int main()
 {

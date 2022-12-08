@@ -37,7 +37,7 @@ link:
 	@$(LD) -T$(LINK) $(LDFLAGS) -o $(BIN) $(subst ./src/,./out/,$(OUT_ASM)) $(subst ./src/,./out/,$(OUT_C)) $(subst ./src/,./out/,$(OUT_CPP))
 
 initrd:
-	@./bafs_gen
+	@./extra/bafs_gen
 
 iso:
 	@mkdir -p ./out/iso/boot/grub/

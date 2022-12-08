@@ -131,8 +131,6 @@ namespace bac::kernel::gui {
 
     void TextScreen::updateForwards(size_t curs) {
 
-//        qemu::print("UPDATING\n");
-//
         for (size_t i = curs; i <= length; i++)
             placeChar(data[i], i);
     }

@@ -62,9 +62,6 @@ namespace bac::types {
                     CURSOR++;
                 }
 
-                qemu::prints(data, length);
-                qemu::printc('\n');
-
             }
         }
 

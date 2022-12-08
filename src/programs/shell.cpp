@@ -47,12 +47,58 @@ namespace bac::programs::shell {
         else cursorOff();
     }
 
+    void prompt() {
+
+        screen->print(":>> ");
+        startCursor = screen->cursor();
+        endCursor = startCursor;
+    }
+
+    void runCmd() {
+
+        size_t len = endCursor - startCursor;
+        size_t args = 0, argStart = 0;
+        char cmd[len + 1];
+        for (size_t i = 0; i < len; i++) {
+            char c = screen->charAt(startCursor + i);
+            if (c != ' ')
+                cmd[i] = c;
+            else {
+                cmd[i] = 0;
+                args++;
+                if (!argStart)
+                    argStart = i + 1;
+            }
+        }
+
+        cmd[len] = 0;
+
+        if (memory::streq(cmd, "help")) {
+            screen->print("I'm a help command\n");
+        }
+
+        else if (memory::streq(cmd, "echo")) {
+
+            for (size_t i = 0, j = argStart, last = argStart; i < args; i++, j++)
+                if (cmd[j])
+                    screen->printc(cmd[last + j]);
+                else last = j + 1;
+            screen->printc('\n');
+        }
+
+
+        else screen->print("Unknown command.\n");
+    }
+
+
     int main() {
 
         kernel::gui::TextScreen _ = kernel::gui::TextScreen(0, 0, lfb8::W, lfb8::H, 4, 0x14, 0x15, 1, 8, 8);
         screen = &_;
 
         updateCursor(true);
+
+        prompt();
 
         timer::onTimerTick = []() {
 
@@ -73,7 +119,11 @@ namespace bac::programs::shell {
             }
 
             else if (key == keyboard::Keycode::Enter || key == keyboard::Keycode::KeypadEnter) {
+
                 screen->printc('\n');
+                runCmd();
+
+                prompt();
             }
 
             else if (key == keyboard::Keycode::End || key == keyboard::Keycode::KeypadOne_KeypadEnd) {
