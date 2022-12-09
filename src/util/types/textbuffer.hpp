@@ -55,7 +55,7 @@ namespace bac::types {
 
                 } else {
 
-                    memory::memmove((u8 * ) & data[CURSOR + 1], (u8 * ) & data[CURSOR], length - CURSOR);
+                    memory::memmove((u8 *) &data[CURSOR + 1], (u8 *) &data[CURSOR], length - CURSOR);
                     data[CURSOR] = c;
                     length++;
                     updateForwards(CURSOR);
@@ -105,7 +105,40 @@ namespace bac::types {
             }
         }
 
-        void printx(u32 hex) {
+
+        void print1x(u8 hex) {
+
+            prints("0x");
+
+            u8 high = hex >> 4, low = hex & 0x0F;
+            printc(high < 10 ? '0' + high : 'A' - 10 + high);
+            printc(low < 10 ? '0' + low : 'A' - 10 + low);
+        }
+
+        void print2x(u16 hex) {
+
+            prints("0x");
+            bool printed = false;
+
+            for (u8 i = 0; i < 2; i++) {
+
+                u8 n = hex >> 8;
+
+                if (n || printed) {
+
+                    u8 high = n >> 4, low = n & 0x0F;
+                    printc(high < 10 ? '0' + high : 'A' - 10 + high);
+                    printc(low < 10 ? '0' + low : 'A' - 10 + low);
+                    printed = true;
+                }
+                hex <<= 8;
+            }
+
+            if (!printed)
+                prints("00");
+        }
+
+        void print4x(u32 hex) {
 
             prints("0x");
             bool printed = false;
@@ -113,6 +146,29 @@ namespace bac::types {
             for (u8 i = 0; i < 4; i++) {
 
                 u8 n = hex >> 24;
+
+                if (n || printed) {
+
+                    u8 high = n >> 4, low = n & 0x0F;
+                    printc(high < 10 ? '0' + high : 'A' - 10 + high);
+                    printc(low < 10 ? '0' + low : 'A' - 10 + low);
+                    printed = true;
+                }
+                hex <<= 8;
+            }
+
+            if (!printed)
+                prints("00");
+        }
+
+        void print8x(u64 hex) {
+
+            prints("0x");
+            bool printed = false;
+
+            for (u8 i = 0; i < 8; i++) {
+
+                u8 n = hex >> 56;
 
                 if (n || printed) {
 
@@ -148,6 +204,9 @@ namespace bac::types {
 
                     switch (*format) {
 
+                        case 'c':
+                            printc((char) va_arg(lst, i32));
+                            break;
                         case 's':
                             prints(va_arg(lst, char*));
                             break;
@@ -156,19 +215,46 @@ namespace bac::types {
                             printi(va_arg(lst, i32));
                             break;
                         case 'x':
-                            printx(va_arg(lst, u32));
+                            print4x(va_arg(lst, u32));
                             break;
 
-//                        case 'l':
-//                            format++;
-//                            switch (*format) {
-//
-//                                case 'i':
-//                                case 'd':
-//                                    print
-//
-//                            }
+                        case '1':
+                            format++;
+                            switch (*format) {
 
+                                case 'x':
+                                    print1x((u8) va_arg(lst, u32));
+                                    break;
+                            }
+                            break;
+                        case '2':
+                            format++;
+                            switch (*format) {
+
+                                case 'x':
+                                    qemu::print("%2x\n");
+                                    print2x((u16) va_arg(lst, u32));
+                                    break;
+                            }
+                            break;
+                        case '4':
+                            format++;
+                            switch (*format) {
+
+                                case 'x':
+                                    print4x(va_arg(lst, u32));
+                                    break;
+                            }
+                            break;
+                        case '8':
+                            format++;
+                            switch (*format) {
+
+                                case 'x':
+                                    print8x(va_arg(lst, u64));
+                                    break;
+                            }
+                            break;
                         case '%':
                             printc('%');
                             break;
@@ -190,7 +276,7 @@ namespace bac::types {
             if (length == 0 || CURSOR == 0)
                 return false;
 
-            memory::memmove((u8 * ) & data[CURSOR], (u8 * ) & data[CURSOR + 1], length - CURSOR);
+            memory::memmove((u8 *) &data[CURSOR], (u8 *) &data[CURSOR + 1], length - CURSOR);
             data[--length] = 0;
             updateForwards(--CURSOR);
 

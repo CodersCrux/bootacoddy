@@ -84,11 +84,11 @@ cname int kernel_main(multiboot *mb) {
     // Enable paging, allowing us to divide and protect memory, as well as utilize it better
     paging::init(mb);
 
+    console->print("Hey there %8x", 0xFFFFFFFFFFFFFFFF);
+
     asm("sti");
 
-    programs::shell::main();
-
-    bac::kernel::console->print("f");
+//    programs::shell::main();
 
     while (1);
 

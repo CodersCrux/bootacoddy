@@ -57,39 +57,40 @@ namespace bac::programs::shell {
     void runCmd() {
 
         size_t len = endCursor - startCursor;
-        size_t args = 0, argStart = 0;
+        size_t argCount = 0;
         char cmd[len + 1];
+        size_t labelLen = 0;
         for (size_t i = 0; i < len; i++) {
             char c = screen->charAt(startCursor + i);
-            if (c != ' ')
-                cmd[i] = c;
-            else {
+            if (c == ' ') {
+                argCount++;
                 cmd[i] = 0;
-                args++;
-                if (!argStart)
-                    argStart = i + 1;
-            }
+                if (!labelLen)
+                    labelLen = i;
+            } else cmd[i] = c;
         }
 
         cmd[len] = 0;
 
+        size_t args[argCount];
+        for (size_t i = 0, j = 0; i < len; i++)
+            if (!cmd[i]) {
+                args[j] = i + 1;
+                j++;
+            }
+
         if (memory::streq(cmd, "help")) {
             screen->print("I'm a help command\n");
-        }
+        } else if (memory::streq(cmd, "echo")) {
 
-        else if (memory::streq(cmd, "echo")) {
-
-            for (size_t i = 0, j = argStart, last = argStart; i < args; i++, j++)
-                if (cmd[j])
-                    screen->printc(cmd[last + j]);
-                else last = j + 1;
+            for (size_t i = 0; i < argCount; i++) {
+                screen->print(&cmd[args[i]]);
+                if (i < argCount - 1)
+                    screen->printc(' ');
+            }
             screen->printc('\n');
-        }
-
-
-        else screen->print("Unknown command.\n");
+        } else screen->print("Unknown command.\n");
     }
-
 
     int main() {
 
@@ -116,33 +117,23 @@ namespace bac::programs::shell {
             if (key == keyboard::Keycode::Backspace) {
                 if (screen->cursor() > startCursor && screen->backspace())
                     endCursor--;
-            }
-
-            else if (key == keyboard::Keycode::Enter || key == keyboard::Keycode::KeypadEnter) {
+            } else if (key == keyboard::Keycode::Enter || key == keyboard::Keycode::KeypadEnter) {
 
                 screen->printc('\n');
                 runCmd();
 
                 prompt();
-            }
-
-            else if (key == keyboard::Keycode::End || key == keyboard::Keycode::KeypadOne_KeypadEnd) {
+            } else if (key == keyboard::Keycode::End || key == keyboard::Keycode::KeypadOne_KeypadEnd) {
                 screen->end();
-            }
-
-            else if (key == keyboard::Keycode::Home || key == keyboard::Keycode::KeypadSeven_KeypadHome) {
+            } else if (key == keyboard::Keycode::Home || key == keyboard::Keycode::KeypadSeven_KeypadHome) {
                 screen->home();
-            }
-
-            else if (key == keyboard::Keycode::LeftArrow || key == keyboard::Keycode::KeypadFour_KeypadLeftArrow) {
+            } else if (key == keyboard::Keycode::LeftArrow || key == keyboard::Keycode::KeypadFour_KeypadLeftArrow) {
                 if (screen->cursor() > startCursor)
                     screen->cursorLeft();
-            }
-            else if (key == keyboard::Keycode::RightArrow || key == keyboard::Keycode::KeypadSix_KeypadRightArrow) {
+            } else if (key == keyboard::Keycode::RightArrow || key == keyboard::Keycode::KeypadSix_KeypadRightArrow) {
                 if (screen->cursor() < endCursor)
                     screen->cursorRight();
-            }
-            else if (keyboard::text::isSymbol(key)) {
+            } else if (keyboard::text::isSymbol(key)) {
 
                 char c = keyboard::text::toAscii(key);
 

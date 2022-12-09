@@ -109,7 +109,7 @@ namespace bac::kernel::paging {
 
     u32 first_frame() {
 
-        for (u32 i = 0, j, block; i < num_frames / 32; i++) {
+        for (u32 i = first_free_frame, j, block; i < num_frames / 32; i++) {
 
             block = frame_bitmap[i];
             // Whole frame block already taken, skip
@@ -117,14 +117,28 @@ namespace bac::kernel::paging {
                 continue;
 
             for (j = 0; j < 32; j++, block >>= 1)
-                if (!(block & 1)) // This frame is free
-                    return i * 32 + j;
+                if (!(block & 1)) {
+                    u32 f = i * 32 + j;
+                    if (f > first_free_frame)
+                        first_free_frame = f;
+                    return f;
+                }
         }
 
         return 0;
     }
 
+    void free_frame(u32 frame) {
+        clear_frame(frame);
+        if (frame < first_free_frame)
+            first_free_frame = frame;
+    }
+
     u32 alloc_page() {
+
+        u32 frame = first_frame();
+
+
         return 0;
     }
 
@@ -140,24 +154,24 @@ namespace bac::kernel::paging {
 
             TOTAL_MEMORY_U64 = 0;
 
+            u32 lastEnd = 0;
+
             for (size_t i = 0; i < mb->mmap_length; i += sizeof(MemoryMapEntry)) {
 
                 MemoryMapEntry *entry = (MemoryMapEntry *) (mb->mmap_addr + i);
 
-                if (0x100000000 - TOTAL_MEMORY_U64 >= entry->len)
-                    TOTAL_MEMORY_U64 += entry->len;
-                else TOTAL_MEMORY_U64 = 0x100000000;
-            }
+                console->print("%x-%x\n", entry->addr, entry->addr + entry->len);
 
-            if ((TOTAL_MEMORY_U64 & 0x10000) > 0)
-                TOTAL_MEMORY_U64 += 0x10000 - (TOTAL_MEMORY_U64 & 0xFFFF);
+                TOTAL_MEMORY_U64 += entry->len;
+
+            }
 
             if (TOTAL_MEMORY_U64 < 0x1000000) // Kernel must have at least 16MB
                 PANIC("Kernel must have at least 16MiB of memory!");
 
         }
 
-//        console->print("Total mem: %x\n", (u32) TOTAL_MEMORY_U64);
+        console->print("Total mem: %8x\n", TOTAL_MEMORY_U64);
 
         // Place our dumb memory allocation at the end of the kernel
         dumb_placement = (u32) &end;
@@ -176,7 +190,7 @@ namespace bac::kernel::paging {
             directory[i] = (u32 *) ((u32) tables[i] | 0b010);
         }
 
-        for (PageMapping *pm : map) {
+        for (PageMapping *pm: map) {
 
             for (size_t addr = 0; addr < (pm->end - pm->start); addr += 0x1000)
                 map_page(pm->start + addr, pm->virtualAddr + addr, 0b011);
@@ -194,6 +208,8 @@ namespace bac::kernel::paging {
         write_cr0(read_cr0() | 0x80000000);
 
         drivers::video::lfb8::ADDR = 0x800000;
+
+        qemu::print("Frame: %x\n", first_frame() * 0x1000);
 
     }
 
